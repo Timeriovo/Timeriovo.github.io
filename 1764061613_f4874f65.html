@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>芜湖烟草物流机器维修预测分析系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.4/dist/framer-motion.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#E31937',
+            secondary: '#1A1A1A',
+            dark: '#0A0A0A',
+            light: '#F5F5F5',
+            gray: {
+              800: '#2D2D2D',
+              700: '#404040',
+              600: '#525252',
+              500: '#737373',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .gradient-border {
+        position: relative;
+        border-radius: 0.75rem;
+      }
+      .gradient-border::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 0.75rem;
+        padding: 1px;
+        background: linear-gradient(90deg, #E31937, rgba(227, 25, 55, 0.2));
+        -webkit-mask: 
+          linear-gradient(#fff 0 0) content-box, 
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+      .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(227, 25, 55, 0.1), 0 8px 10px -6px rgba(227, 25, 55, 0.1);
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-dark text-light min-h-screen">
+  <!-- 导航栏 -->
+  <header class="sticky top-0 z-50 bg-dark/80 backdrop-blur-md border-b border-primary/20">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <div class="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
+          <i class="fa fa-cogs text-white text-xl"></i>
+        </div>
+        <h1 class="text-xl md:text-2xl font-bold tracking-tight">
+          <span class="text-primary">芜湖</span>烟草物流维修预测系统
+        </h1>
+      </div>
+      
+      <div class="hidden md:flex items-center space-x-6">
+        <a href="#health" class="text-gray-500 hover:text-primary transition-colors">设备健康度</a>
+        <a href="#fault" class="text-gray-500 hover:text-primary transition-colors">故障预测</a>
+        <a href="#cost" class="text-gray-500 hover:text-primary transition-colors">维护成本</a>
+        <a href="#inventory" class="text-gray-500 hover:text-primary transition-colors">备件库存</a>
+        <a href="#knowledge" class="text-gray-500 hover:text-primary transition-colors">知识库</a>
+      </div>
+      
+      <button class="md:hidden text-gray-500 hover:text-primary">
+        <i class="fa fa-bars text-xl"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    <!-- 概览部分 -->
+    <section class="mb-12">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <div>
+          <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-2">设备维修预测分析</h2>
+          <p class="text-gray-500">基于历史维修记录的智能分析与预测</p>
+        </div>
+        <div class="mt-4 md:mt-0 bg-secondary rounded-lg p-3 flex items-center space-x-2">
+          <i class="fa fa-calendar text-primary"></i>
+          <span id="current-date">2024年11月</span>
+        </div>
+      </div>
+      
+      <!-- 关键指标卡片 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- 整体健康度 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border card-hover">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <p class="text-gray-500 text-sm">整体健康度</p>
+              <h3 class="text-3xl font-bold mt-1">78<span class="text-primary">/100</span></h3>
+            </div>
+            <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <i class="fa fa-heartbeat text-primary text-xl"></i>
+            </div>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-green-500 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i> 3.2%
+            </span>
+            <span class="text-gray-500 ml-2">较上月</span>
+          </div>
+        </div>
+        
+        <!-- 高风险设备 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border card-hover">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <p class="text-gray-500 text-sm">高风险设备</p>
+              <h3 class="text-3xl font-bold mt-1">5<span class="text-primary">台</span></h3>
+            </div>
+            <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <i class="fa fa-exclamation-triangle text-primary text-xl"></i>
+            </div>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-red-500 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i> 1
+            </span>
+            <span class="text-gray-500 ml-2">较上周</span>
+          </div>
+        </div>
+        
+        <!-- 预测故障 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border card-hover">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <p class="text-gray-500 text-sm">本周预测故障</p>
+              <h3 class="text-3xl font-bold mt-1">8<span class="text-primary">次</span></h3>
+            </div>
+            <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <i class="fa fa-wrench text-primary text-xl"></i>
+            </div>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-yellow-500 flex items-center">
+              <i class="fa fa-minus mr-1"></i> 0
+            </span>
+            <span class="text-gray-500 ml-2">与上周持平</span>
+          </div>
+        </div>
+        
+        <!-- 库存预警 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border card-hover">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <p class="text-gray-500 text-sm">库存预警</p>
+              <h3 class="text-3xl font-bold mt-1">12<span class="text-primary">项</span></h3>
+            </div>
+            <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <i class="fa fa-archive text-primary text-xl"></i>
+            </div>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-red-500 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i> 3
+            </span>
+            <span class="text-gray-500 ml-2">较上周</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 设备健康度评估 -->
+    <section id="health" class="mb-16 scroll-mt-20">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">设备健康度评估</h2>
+        <div class="flex space-x-2">
+          <button class="bg-secondary text-sm px-3 py-1 rounded-md hover:bg-primary/10 transition-colors">月度</button>
+          <button class="bg-primary/10 text-primary text-sm px-3 py-1 rounded-md">季度</button>
+          <button class="bg-secondary text-sm px-3 py-1 rounded-md hover:bg-primary/10 transition-colors">年度</button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 健康度趋势 -->
+        <div class="lg:col-span-2 bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">健康度趋势分析</h3>
+          <div class="h-80">
+            <canvas id="healthTrendChart"></canvas>
+          </div>
+        </div>
+        
+        <!-- 风险分布 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">设备风险分布</h3>
+          <div class="h-64 mb-4">
+            <canvas id="riskDistributionChart"></canvas>
+          </div>
+          
+          <div class="space-y-3 mt-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                <span class="text-sm">高风险</span>
+              </div>
+              <span class="text-sm font-medium">15%</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                <span class="text-sm">中风险</span>
+              </div>
+              <span class="text-sm font-medium">35%</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                <span class="text-sm">低风险</span>
+              </div>
+              <span class="text-sm font-medium">50%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 高风险设备列表 -->
+      <div class="mt-6 bg-secondary rounded-xl p-6 gradient-border">
+        <h3 class="text-lg font-semibold mb-4">高风险设备清单</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[640px]">
+            <thead>
+              <tr class="border-b border-gray-800">
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">设备名称</th>
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">位置</th>
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">健康度</th>
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">上次维修</th>
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">预测故障</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">异型烟分拣线</td>
+                <td class="py-3 px-4">分拣线</td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center">
+                    <div class="w-24 bg-gray-800 rounded-full h-2 mr-2">
+                      <div class="bg-red-500 h-2 rounded-full" style="width: 45%"></div>
+                    </div>
+                    <span class="text-sm">45/100</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-sm">2024-11-27</td>
+                <td class="py-3 px-4 text-sm text-red-500">高 (78%)</td>
+              </tr>
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">标准烟分拣线</td>
+                <td class="py-3 px-4">开箱机</td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center">
+                    <div class="w-24 bg-gray-800 rounded-full h-2 mr-2">
+                      <div class="bg-red-500 h-2 rounded-full" style="width: 52%"></div>
+                    </div>
+                    <span class="text-sm">52/100</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-sm">2024-11-19</td>
+                <td class="py-3 px-4 text-sm text-red-500">高 (65%)</td>
+              </tr>
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">仓储系统</td>
+                <td class="py-3 px-4">提升机</td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center">
+                    <div class="w-24 bg-gray-800 rounded-full h-2 mr-2">
+                      <div class="bg-yellow-500 h-2 rounded-full" style="width: 62%"></div>
+                    </div>
+                    <span class="text-sm">62/100</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-sm">2024-10-21</td>
+                <td class="py-3 px-4 text-sm text-yellow-500">中 (45%)</td>
+              </tr>
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">储分一体库</td>
+                <td class="py-3 px-4">入库输送线</td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center">
+                    <div class="w-24 bg-gray-800 rounded-full h-2 mr-2">
+                      <div class="bg-yellow-500 h-2 rounded-full" style="width: 68%"></div>
+                    </div>
+                    <span class="text-sm">68/100</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-sm">2024-11-22</td>
+                <td class="py-3 px-4 text-sm text-yellow-500">中 (32%)</td>
+              </tr>
+              <tr class="hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">仓储区域</td>
+                <td class="py-3 px-4">拆码垛一体机</td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center">
+                    <div class="w-24 bg-gray-800 rounded-full h-2 mr-2">
+                      <div class="bg-yellow-500 h-2 rounded-full" style="width: 65%"></div>
+                    </div>
+                    <span class="text-sm">65/100</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-sm">2024-11-05</td>
+                <td class="py-3 px-4 text-sm text-yellow-500">中 (38%)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 故障风险预测 -->
+    <section id="fault" class="mb-16 scroll-mt-20">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">故障风险预测</h2>
+        <div class="flex space-x-2">
+          <button class="bg-primary/10 text-primary text-sm px-3 py-1 rounded-md">本周</button>
+          <button class="bg-secondary text-sm px-3 py-1 rounded-md hover:bg-primary/10 transition-colors">本月</button>
+          <button class="bg-secondary text-sm px-3 py-1 rounded-md hover:bg-primary/10 transition-colors">下月</button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 故障类型占比 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">故障类型占比</h3>
+          <div class="h-64">
+            <canvas id="faultTypeChart"></canvas>
+          </div>
+          <div class="space-y-2 mt-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-primary mr-2"></div>
+                <span class="text-sm">配件磨损</span>
+              </div>
+              <span class="text-sm font-medium">72%</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                <span class="text-sm">配件损坏</span>
+              </div>
+              <span class="text-sm font-medium">21%</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                <span class="text-sm">电气故障</span>
+              </div>
+              <span class="text-sm font-medium">7%</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 高风险部件 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">Top 5 高故障部件</h3>
+          <div class="space-y-4">
+            <div class="flex items-center">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <i class="fa fa-cylinder text-primary"></i>
+              </div>
+              <div class="ml-3 flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">气缸</span>
+                  <span class="text-sm text-gray-500">38次</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <i class="fa fa-cog text-primary"></i>
+              </div>
+              <div class="ml-3 flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">轴承</span>
+                  <span class="text-sm text-gray-500">32次</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 72%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <i class="fa fa-link text-primary"></i>
+              </div>
+              <div class="ml-3 flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">同步带/多楔带</span>
+                  <span class="text-sm text-gray-500">27次</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 60%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <i class="fa fa-eye text-primary"></i>
+              </div>
+              <div class="ml-3 flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">接近开关</span>
+                  <span class="text-sm text-gray-500">22次</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 48%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <i class="fa fa-exchange text-primary"></i>
+              </div>
+              <div class="ml-3 flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">电磁阀</span>
+                  <span class="text-sm text-gray-500">15次</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 33%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 故障趋势 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">故障趋势分析</h3>
+          <div class="h-64">
+            <canvas id="faultTrendChart"></canvas>
+          </div>
+          <div class="mt-4 text-sm text-gray-500">
+            <p>近三个月故障次数呈上升趋势，主要集中在标准烟分拣线和异型烟分拣线的机械部件磨损问题。</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 故障预测详情 -->
+      <div class="mt-6 bg-secondary rounded-xl p-6 gradient-border">
+        <h3 class="text-lg font-semibold mb-4">本周故障预测详情</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[800px]">
+            <thead>
+              <tr class="border-b border-gray-800">
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">日期</th>
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">设备名称</th>
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">预测故障部件</th>
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">故障概率</th>
+                <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">建议操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">11/28</td>
+                <td class="py-3 px-4">异型烟分拣线</td>
+                <td class="py-3 px-4">同步带、气缸</td>
+                <td class="py-3 px-4">
+                  <span class="text-red-500 text-sm font-medium">78%</span>
+                </td>
+                <td class="py-3 px-4">
+                  <button class="text-primary text-sm hover:underline">计划更换</button>
+                </td>
+              </tr>
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">11/29</td>
+                <td class="py-3 px-4">标准烟分拣线</td>
+                <td class="py-3 px-4">轴承、接近开关</td>
+                <td class="py-3 px-4">
+                  <span class="text-orange-500 text-sm font-medium">65%</span>
+                </td>
+                <td class="py-3 px-4">
+                  <button class="text-primary text-sm hover:underline">计划更换</button>
+                </td>
+              </tr>
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">11/30</td>
+                <td class="py-3 px-4">仓储系统</td>
+                <td class="py-3 px-4">提升机气缸</td>
+                <td class="py-3 px-4">
+                  <span class="text-yellow-500 text-sm font-medium">42%</span>
+                </td>
+                <td class="py-3 px-4">
+                  <button class="text-primary text-sm hover:underline">加强监测</button>
+                </td>
+              </tr>
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">12/01</td>
+                <td class="py-3 px-4">标准烟分拣线</td>
+                <td class="py-3 px-4">多楔带、辊筒</td>
+                <td class="py-3 px-4">
+                  <span class="text-orange-500 text-sm font-medium">58%</span>
+                </td>
+                <td class="py-3 px-4">
+                  <button class="text-primary text-sm hover:underline">计划更换</button>
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-800/50 transition-colors">
+                <td class="py-3 px-4">12/02</td>
+                <td class="py-3 px-4">储分一体库</td>
+                <td class="py-3 px-4">轴承、检测开关</td>
+                <td class="py-3 px-4">
+                  <span class="text-yellow-500 text-sm font-medium">35%</span>
+                </td>
+                <td class="py-3 px-4">
+                  <button class="text-primary text-sm hover:underline">加强监测</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 维护成本分析 -->
+    <section id="cost" class="mb-16 scroll-mt-20">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">维护成本分析</h2>
+        <div class="flex space-x-2">
+          <button class="bg-secondary text-sm px-3 py-1 rounded-md hover:bg-primary/10 transition-colors">季度</button>
+          <button class="bg-primary/10 text-primary text-sm px-3 py-1 rounded-md">半年</button>
+          <button class="bg-secondary text-sm px-3 py-1 rounded-md hover:bg-primary/10 transition-colors">年度</button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 成本趋势 -->
+        <div class="lg:col-span-2 bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">维护成本趋势</h3>
+          <div class="h-80">
+            <canvas id="costTrendChart"></canvas>
+          </div>
+        </div>
+        
+        <!-- 成本构成 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">成本构成分析</h3>
+          <div class="h-64">
+            <canvas id="costCompositionChart"></canvas>
+          </div>
+          <div class="space-y-2 mt-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-primary mr-2"></div>
+                <span class="text-sm">备件成本</span>
+              </div>
+              <span class="text-sm font-medium">65%</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                <span class="text-sm">人工成本</span>
+              </div>
+              <span class="text-sm font-medium">25%</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                <span class="text-sm">停机损失</span>
+              </div>
+              <span class="text-sm font-medium">10%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 设备成本排行 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div class="bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">设备维护成本排行</h3>
+          <div class="space-y-4">
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">01</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">异型烟分拣线</span>
+                  <span class="text-sm">¥45,800</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 100%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">02</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">标准烟分拣线</span>
+                  <span class="text-sm">¥38,200</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 83%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">03</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">仓储系统</span>
+                  <span class="text-sm">¥25,500</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 56%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">04</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">储分一体库</span>
+                  <span class="text-sm">¥18,700</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 41%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">05</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">包装机</span>
+                  <span class="text-sm">¥12,400</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 27%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 备件成本排行 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">备件成本排行</h3>
+          <div class="space-y-4">
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">01</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">气缸</span>
+                  <span class="text-sm">¥18,500</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 100%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">02</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">轴承</span>
+                  <span class="text-sm">¥12,300</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 66%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">03</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">同步带/多楔带</span>
+                  <span class="text-sm">¥9,800</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 53%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">04</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">辊筒</span>
+                  <span class="text-sm">¥7,600</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 41%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex items-center">
+              <div class="text-xl font-bold text-primary mr-3">05</div>
+              <div class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm font-medium">接近开关</span>
+                  <span class="text-sm">¥5,200</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: 28%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 备件库存状态 -->
+    <section id="inventory" class="mb-16 scroll-mt-20">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">备件库存状态</h2>
+        <div class="flex space-x-2">
+          <button class="bg-primary text-sm px-3 py-1 rounded-md hover:bg-primary/80 transition-colors">库存预警</button>
+          <button class="bg-secondary text-sm px-3 py-1 rounded-md hover:bg-primary/10 transition-colors">全部库存</button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 库存概览 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">库存概览</h3>
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">总备件种类</p>
+                <p class="text-3xl font-bold mt-1">48</p>
+              </div>
+              <div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <i class="fa fa-cubes text-primary text-2xl"></i>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">库存总量</p>
+                <p class="text-3xl font-bold mt-1">1,286</p>
+              </div>
+              <div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <i class="fa fa-cube text-primary text-2xl"></i>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">库存价值</p>
+                <p class="text-3xl font-bold mt-1">¥156,800</p>
+              </div>
+              <div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <i class="fa fa-money text-primary text-2xl"></i>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">库存周转率</p>
+                <p class="text-3xl font-bold mt-1">3.2<span class="text-sm text-gray-500">次/年</span></p>
+              </div>
+              <div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <i class="fa fa-refresh text-primary text-2xl"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 库存预警 -->
+        <div class="lg:col-span-2 bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4">库存预警清单</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px]">
+              <thead>
+                <tr class="border-b border-gray-800">
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">备件名称</th>
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">当前库存</th>
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">安全库存</th>
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">最近消耗</th>
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">建议订购</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4">气缸</td>
+                  <td class="py-3 px-4 text-red-500">5</td>
+                  <td class="py-3 px-4">15</td>
+                  <td class="py-3 px-4">10个/月</td>
+                  <td class="py-3 px-4">
+                    <button class="bg-primary text-sm px-3 py-1 rounded-md hover:bg-primary/80 transition-colors">15个</button>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4">轴承</td>
+                  <td class="py-3 px-4 text-red-500">8</td>
+                  <td class="py-3 px-4">20</td>
+                  <td class="py-3 px-4">12个/月</td>
+                  <td class="py-3 px-4">
+                    <button class="bg-primary text-sm px-3 py-1 rounded-md hover:bg-primary/80 transition-colors">20个</button>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4">同步带</td>
+                  <td class="py-3 px-4 text-red-500">3</td>
+                  <td class="py-3 px-4">10</td>
+                  <td class="py-3 px-4">8个/月</td>
+                  <td class="py-3 px-4">
+                    <button class="bg-primary text-sm px-3 py-1 rounded-md hover:bg-primary/80 transition-colors">15个</button>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4">多楔带</td>
+                  <td class="py-3 px-4 text-red-500">4</td>
+                  <td class="py-3 px-4">10</td>
+                  <td class="py-3 px-4">6个/月</td>
+                  <td class="py-3 px-4">
+                    <button class="bg-primary text-sm px-3 py-1 rounded-md hover:bg-primary/80 transition-colors">10个</button>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4">接近开关</td>
+                  <td class="py-3 px-4 text-orange-500">12</td>
+                  <td class="py-3 px-4">25</td>
+                  <td class="py-3 px-4">15个/月</td>
+                  <td class="py-3 px-4">
+                    <button class="bg-primary text-sm px-3 py-1 rounded-md hover:bg-primary/80 transition-colors">20个</button>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4">电磁阀</td>
+                  <td class="py-3 px-4 text-orange-500">6</td>
+                  <td class="py-3 px-4">15</td>
+                  <td class="py-3 px-4">5个/月</td>
+                  <td class="py-3 px-4">
+                    <button class="bg-primary text-sm px-3 py-1 rounded-md hover:bg-primary/80 transition-colors">10个</button>
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4">辊筒</td>
+                  <td class="py-3 px-4 text-orange-500">7</td>
+                  <td class="py-3 px-4">15</td>
+                  <td class="py-3 px-4">4个/月</td>
+                  <td class="py-3 px-4">
+                    <button class="bg-primary text-sm px-3 py-1 rounded-md hover:bg-primary/80 transition-colors">10个</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 备件消耗趋势 -->
+      <div class="mt-6 bg-secondary rounded-xl p-6 gradient-border">
+        <h3 class="text-lg font-semibold mb-4">关键备件消耗趋势</h3>
+        <div class="h-80">
+          <canvas id="sparePartsTrendChart"></canvas>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 知识库信息分析 -->
+    <section id="knowledge" class="mb-16 scroll-mt-20">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">维修知识库</h2>
+        <div>
+          <button class="bg-primary text-sm px-4 py-2 rounded-md hover:bg-primary/80 transition-colors">
+            <i class="fa fa-plus mr-1"></i> 添加记录
+          </button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 常见故障 -->
+        <div class="bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fa fa-exclamation-circle text-primary mr-2"></i> 常见故障解决方案
+          </h3>
+          <div class="space-y-4">
+            <div class="bg-gray-800/50 p-4 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">
+              <h4 class="font-medium mb-1">气缸故障</h4>
+              <p class="text-sm text-gray-500">常见症状：动作缓慢、漏气、不动作。解决方案：检查气源压力、更换密封件或整体更换。</p>
+            </div>
+            
+            <div class="bg-gray-800/50 p-4 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">
+              <h4 class="font-medium mb-1">轴承磨损</h4>
+              <p class="text-sm text-gray-500">常见症状：异响、振动增大、温度升高。解决方案：及时更换，检查安装精度和润滑情况。</p>
+            </div>
+            
+            <div class="bg-gray-800/50 p-4 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">
+              <h4 class="font-medium mb-1">同步带断裂</h4>
+              <p class="text-sm text-gray-500">常见症状：传动失效、异响。解决方案：更换同步带，检查张紧度和带轮对齐情况。</p>
+            </div>
+            
+            <div class="bg-gray-800/50 p-4 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">
+              <h4 class="font-medium mb-1">接近开关故障</h4>
+              <p class="text-sm text-gray-500">常见症状：信号不稳定或无信号。解决方案：清洁感应面、检查线路或更换开关。</p>
+            </div>
+            
+            <div class="bg-gray-800/50 p-4 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer">
+              <h4 class="font-medium mb-1">电磁阀不工作</h4>
+              <p class="text-sm text-gray-500">常见症状：无动作或漏气。解决方案：检查线圈、清洁阀芯或更换电磁阀。</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 维修记录 -->
+        <div class="lg:col-span-2 bg-secondary rounded-xl p-6 gradient-border">
+          <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fa fa-history text-primary mr-2"></i> 最近维修记录
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[800px]">
+              <thead>
+                <tr class="border-b border-gray-800">
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">日期</th>
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">设备名称</th>
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">故障位置</th>
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">故障描述</th>
+                  <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">处理方法</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4 text-sm">2024-11-27</td>
+                  <td class="py-3 px-4 text-sm">异型烟分拣线</td>
+                  <td class="py-3 px-4 text-sm">分拣线</td>
+                  <td class="py-3 px-4 text-sm">配件磨损</td>
+                  <td class="py-3 px-4 text-sm">更换气缸2个，接近开关10个</td>
+                </tr>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4 text-sm">2024-11-26</td>
+                  <td class="py-3 px-4 text-sm">异型烟分拣线</td>
+                  <td class="py-3 px-4 text-sm">包装机</td>
+                  <td class="py-3 px-4 text-sm">配件磨损</td>
+                  <td class="py-3 px-4 text-sm">更换多楔带1个</td>
+                </tr>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4 text-sm">2024-11-25</td>
+                  <td class="py-3 px-4 text-sm">异型烟分拣线</td>
+                  <td class="py-3 px-4 text-sm">包装机</td>
+                  <td class="py-3 px-4 text-sm">配件磨损</td>
+                  <td class="py-3 px-4 text-sm">更换超薄气缸2个，辊筒790 2个，辊筒690 2个</td>
+                </tr>
+                <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4 text-sm">2024-11-22</td>
+                  <td class="py-3 px-4 text-sm">储分一体库</td>
+                  <td class="py-3 px-4 text-sm">入库输送线</td>
+                  <td class="py-3 px-4 text-sm">配件磨损</td>
+                  <td class="py-3 px-4 text-sm">更换气缸检测开关10个</td>
+                </tr>
+                <tr class="hover:bg-gray-800/50 transition-colors">
+                  <td class="py-3 px-4 text-sm">2024-11-20</td>
+                  <td class="py-3 px-4 text-sm">储分一体库</td>
+                  <td class="py-3 px-4 text-sm">出库输送线</td>
+                  <td class="py-3 px-4 text-sm">配件磨损</td>
+                  <td class="py-3 px-4 text-sm">更换轴承12个</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 flex justify-center">
+            <button class="text-primary text-sm hover:underline">查看更多记录</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-secondary border-t border-primary/20 py-8">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="mb-4 md:mb-0">
+          <div class="flex items-center space-x-2">
+            <div class="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <i class="fa fa-cogs text-white text-sm"></i>
+            </div>
+            <span class="font-bold">芜湖烟草物流维修预测系统</span>
+          </div>
+          <p class="text-gray-500 text-sm mt-2">© 2024 版权所有</p>
+        </div>
+        
+        <div class="flex space-x-6">
+          <a href="#" class="text-gray-500 hover:text-primary transition-colors">
+            <i class="fa fa-file-text-o"></i>
+            <span class="ml-1 text-sm">使用手册</span>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-primary transition-colors">
+            <i class="fa fa-question-circle"></i>
+            <span class="ml-1 text-sm">帮助中心</span>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-primary transition-colors">
+            <i class="fa fa-envelope-o"></i>
+            <span class="ml-1 text-sm">联系我们</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 设置当前日期
+    document.addEventListener('DOMContentLoaded', function() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      document.getElementById('current-date').textContent = `${year}年${month}月`;
+      
+      // 初始化图表
+      initCharts();
+      
+      // 添加滚动动画
+      addScrollAnimations();
+    });
+    
+    // 图表初始化函数
+    function initCharts() {
+      // 健康度趋势图表
+      const healthTrendCtx = document.getElementById('healthTrendChart').getContext('2d');
+      new Chart(healthTrendCtx, {
+        type: 'line',
+        data: {
+          labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月'],
+          datasets: [
+            {
+              label: '异型烟分拣线',
+              data: [85, 82, 78, 80, 76, 74, 72, 68, 65, 60, 45],
+              borderColor: '#E31937',
+              backgroundColor: 'rgba(227, 25, 55, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: '标准烟分拣线',
+              data: [88, 85, 83, 80, 78, 75, 73, 70, 68, 65, 52],
+              borderColor: '#3B82F6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: '仓储系统',
+              data: [90, 88, 86, 84, 82, 80, 78, 76, 74, 70, 65],
+              borderColor: '#10B981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: '#9CA3AF'
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              min: 40,
+              max: 100,
+              ticks: {
+                color: '#9CA3AF'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#9CA3AF'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)'
+              }
+            }
+          }
+        }
+      });
+      
+      // 风险分布图表
+      const riskDistributionCtx = document.getElementById('riskDistributionChart').getContext('2d');
+      new Chart(riskDistributionCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['高风险', '中风险', '低风险'],
+          datasets: [{
+            data: [15, 35, 50],
+            backgroundColor: [
+              '#EF4444',
+              '#F59E0B',
+              '#10B981'
+            ],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+      
+      // 故障类型占比图表
+      const faultTypeCtx = document.getElementById('faultTypeChart').getContext('2d');
+      new Chart(faultTypeCtx, {
+        type: 'pie',
+        data: {
+          labels: ['配件磨损', '配件损坏', '电气故障'],
+          datasets: [{
+            data: [72, 21, 7],
+            backgroundColor: [
+              '#E31937',
+              '#F59E0B',
+              '#3B82F6'
+            ],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+      
+      // 故障趋势图表
+      const faultTrendCtx = document.getElementById('faultTrendChart').getContext('2d');
+      new Chart(faultTrendCtx, {
+        type: 'bar',
+        data: {
+          labels: ['9月', '10月', '11月'],
+          datasets: [{
+            label: '故障次数',
+            data: [18, 25, 32],
+            backgroundColor: '#E31937',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#9CA3AF'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#9CA3AF'
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+      
+      // 成本趋势图表
+      const costTrendCtx = document.getElementById('costTrendChart').getContext('2d');
+      new Chart(costTrendCtx, {
+        type: 'line',
+        data: {
+          labels: ['6月', '7月', '8月', '9月', '10月', '11月'],
+          datasets: [
+            {
+              label: '月度维护成本',
+              data: [12500, 14200, 16800, 15500, 18200, 22500],
+              borderColor: '#E31937',
+              backgroundColor: 'rgba(227, 25, 55, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: '#9CA3AF'
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              ticks: {
+                color: '#9CA3AF',
+                callback: function(value) {
+                  return '¥' + value.toLocaleString();
+                }
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#9CA3AF'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)'
+              }
+            }
+          }
+        }
+      });
+      
+      // 成本构成图表
+      const costCompositionCtx = document.getElementById('costCompositionChart').getContext('2d');
+      new Chart(costCompositionCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['备件成本', '人工成本', '停机损失'],
+          datasets: [{
+            data: [65, 25, 10],
+            backgroundColor: [
+              '#E31937',
+              '#F59E0B',
+              '#3B82F6'
+            ],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+      
+      // 备件消耗趋势图表
+      const sparePartsTrendCtx = document.getElementById('sparePartsTrendChart').getContext('2d');
+      new Chart(sparePartsTrendCtx, {
+        type: 'line',
+        data: {
+          labels: ['6月', '7月', '8月', '9月', '10月', '11月'],
+          datasets: [
+            {
+              label: '气缸',
+              data: [8, 10, 12, 15, 18, 22],
+              borderColor: '#E31937',
+              tension: 0.4
+            },
+            {
+              label: '轴承',
+              data: [10, 12, 15, 18, 20, 25],
+              borderColor: '#3B82F6',
+              tension: 0.4
+            },
+            {
+              label: '同步带/多楔带',
+              data: [6, 8, 10, 12, 15, 18],
+              borderColor: '#10B981',
+              tension: 0.4
+            },
+            {
+              label: '接近开关',
+              data: [5, 7, 9, 12, 15, 18],
+              borderColor: '#F59E0B',
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: '#9CA3AF'
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#9CA3AF'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#9CA3AF'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // 添加滚动动画
+    function addScrollAnimations() {
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+      
+      // 添加动画类
+      document.head.insertAdjacentHTML('beforeend', `
+        <style>
+          .animate-in {
+            animation: fadeInUp 0.8s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          
+          @keyframes fadeInUp {
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        </style>
+      `);
+      
+      // 观察所有部分
+      document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+      });
+    }
+  </script>
+</body>
+</html>
